@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {
     Grid, Form, Input, Select, Step, Button, Container, Segment,
-    TextArea, Message
+    Header, TextArea, Message
 } from 'semantic-ui-react';
 
 export default class FeedbackForm extends Component {
