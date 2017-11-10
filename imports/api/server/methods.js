@@ -2,6 +2,10 @@ import {Meteor} from 'meteor/meteor';
 import {Feedback} from '../collections';
 import {HTTP} from 'meteor/http';
 
+Meteor.publish('getFeedback', (id) => {
+    return Feedback.find({_id: id});
+});
+
 const writeFiles = (files, filesName, id) => {
 
     for (let i = 0; i < files.length; i++) {
@@ -39,15 +43,18 @@ Meteor.methods({
         const {id, area, type, details, email, name, files, filesName} = feedback;
         let feedbackID = Feedback.insert({
             id, area, type, details, name, email,
-            status: "Received",
+            status: "received",
             lastUpdated: new Date(),
-            severity: false,
-            internal: false,
-            deadline: false,
+            severity: "unassigned",
+            internal: "",
+            deadline: "",
             notes: "",
             files: [],
+            assignment: ""
         });
-        writeFiles(files, filesName, feedbackID);
+        if (files && files.length > 0) {
+            writeFiles(files, filesName, feedbackID);
+        }
 
         return feedbackID;
     },

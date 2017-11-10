@@ -3,6 +3,7 @@ import {Grid, Image, Menu, Container, Icon, Dropdown, Breadcrumb} from 'semantic
 import {Link, Route} from 'react-router-dom';
 
 import Dashboard from './Dashboard';
+import Complaint from './Complaint';
 
 export default class MomApp extends Component {
     constructor({match}) {
@@ -47,6 +48,7 @@ export default class MomApp extends Component {
                     <Grid container>
                         <Grid.Row><Grid.Column width={16}>
                             <Route exact path={match.url} component={Dashboard}/>
+                            <Route exact path={match.url + "/complaint/:id"} component={Complaint}/>
                         </Grid.Column></Grid.Row>
                     </Grid>
                 </Grid.Row>
