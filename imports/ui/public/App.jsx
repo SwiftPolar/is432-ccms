@@ -1,12 +1,19 @@
 import React, {Component} from 'react';
-import {Grid, Image, Menu, Container, Icon, Breadcrumb, Header, Segment} from 'semantic-ui-react';
-import {Link} from 'react-router-dom';
+import {Grid, Image, Menu, Container, Icon, Breadcrumb, Header, Segment, Dropdown} from 'semantic-ui-react';
+import {Link, Route} from 'react-router-dom';
 
 import FeedbackForm from './FeedbackForm';
+import CheckForm from './CheckForm';
 
 export default class App extends Component {
+    constructor({match}) {
+        super();
+        this.state = {match};
+    }
 
     render() {
+        const {match} = this.state;
+
         return (<div>
             <Grid >
                 <Grid.Row style={{paddingBottom: '0'}}>
@@ -22,19 +29,27 @@ export default class App extends Component {
                 <Grid.Row style={{background: '#006eab', paddingTop: '0', paddingBottom: '0'}}>
                     <Container><Menu borderless size="massive" fluid inverted
                                      style={{boxShadow: 'none', border: '0', background: '#006eab'}}>
-                        <Menu.Item active><Icon name="sidebar"/>MENU</Menu.Item>
+                        <Dropdown item text={<div><Icon name="sidebar" />MENU</div>}>
+                            <Dropdown.Menu style={{background: '#006eab'}}>
+                                <Link to="/public/feedback"><Dropdown.Item>
+                                    Submit New Feedback</Dropdown.Item></Link>
+                                <Link to="/public/check"><Dropdown.Item>
+                                    Check Feedback Status</Dropdown.Item></Link>
+                            </Dropdown.Menu>
+                        </Dropdown>
                         <Menu.Item><Breadcrumb icon='right angle' sections={[
                             {key: 'home', content: 'Home'},
                             {key: 'eservices', content: 'eServices'},
-                            {key: 'ccms-form', content: 'File Feedback'},
+                            {key: 'ccms-form', content: 'Feedback'},
                         ]}/></Menu.Item>
                     </Menu></Container>
                 </Grid.Row>
                 <Grid.Row>
                     <Grid container>
-                        <Grid.Row>
-                            <FeedbackForm />
-                        </Grid.Row>
+                        <Grid.Row><Grid.Column width={16}>
+                            <Route exact path={match.url + '/feedback'} component={FeedbackForm}/>
+                            <Route exact path={match.url + '/check'} component={CheckForm}/>
+                        </Grid.Column></Grid.Row>
                     </Grid>
                 </Grid.Row>
             </Grid>

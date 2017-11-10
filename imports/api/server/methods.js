@@ -50,5 +50,13 @@ Meteor.methods({
         writeFiles(files, filesName, feedbackID);
 
         return feedbackID;
+    },
+
+    checkFeedback(id, feedbackId) {
+        if (!id || !feedbackId) {
+            throw new Meteor.Error("500 Internal Server Error");
+        }
+        let feedback = Feedback.findOne({_id: feedbackId, id: id});
+        return feedback;
     }
 });

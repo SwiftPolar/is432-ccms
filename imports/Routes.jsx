@@ -8,8 +8,7 @@ export const RenderRoutes = () => (
     <Router>
         <div><Switch>
             <Route exact path="/" component={PublicApp}/>
-            <Route exact path="/public" component={PublicApp}/>
-            <Route exact path="/public" component={PublicApp}/>
+            <Route path="/public" component={PublicApp}/>
         </Switch></div>
     </Router>
 )
