@@ -1,10 +1,10 @@
-import { Meteor } from 'meteor/meteor';
-import { Feedback } from '../collections';
+import {Meteor} from 'meteor/meteor';
+import {Feedback} from '../collections';
 import {HTTP} from 'meteor/http';
 
 const writeFiles = (files, filesName, id) => {
 
-    for (let i = 0; i < files.length; i ++) {
+    for (let i = 0; i < files.length; i++) {
         let file = files[i];
         let fileName = filesName[i];
 
@@ -33,8 +33,7 @@ const writeFiles = (files, filesName, id) => {
 
 Meteor.methods({
     newFeedback(feedback) {
-        if(!feedback || !feedback.area || !feedback.type || !feedback.details ||
-            !feedback.id || !feedback.email || !feedback.name) {
+        if (!feedback || !feedback.area || !feedback.type || !feedback.details || !feedback.id || !feedback.email || !feedback.name) {
             throw new Meteor.Error("500 Internal Server Error");
         }
         const {id, area, type, details, email, name, files, filesName} = feedback;
@@ -51,5 +50,5 @@ Meteor.methods({
         writeFiles(files, filesName, feedbackID);
 
         return feedbackID;
-}
+    }
 });
