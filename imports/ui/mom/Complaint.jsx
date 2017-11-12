@@ -1,7 +1,10 @@
 import React, {Component} from 'react';
 import {withTracker} from 'meteor/react-meteor-data';
 import {Feedback} from '../../api/collections.js';
-import {Grid, Header, Form, Tab, Table, List, Menu, Icon, Modal, Confirm} from 'semantic-ui-react';
+import {
+    Grid, Header, Form, Tab, Table, List, Menu, Icon, TextArea,
+    Segment, Button, Modal, Confirm, Label, Select, Input
+} from 'semantic-ui-react';
 
 class Complaint extends Component {
     constructor(props) {
@@ -14,7 +17,8 @@ class Complaint extends Component {
             modal: {
                 spam: false,
                 closeCase: false
-            }
+            },
+            actionPanelSegment: 'default'
         }
     }
 
@@ -32,7 +36,10 @@ class Complaint extends Component {
     handleChange(evt, {name, value}) {
         const {editFeedback, feedback} = this.state;
         let hasEdits = false;
-        if (value != feedback[name]) {
+        const changeExceptions = ['finalRemarks', 'forwardMessage', 'forwardDepartment'];
+        if (changeExceptions.indexOf(name) !== -1) {
+
+        } else if (value != feedback[name]) {
             hasEdits = true;
         } else {
             let editKeys = Object.keys(editFeedback);
@@ -62,11 +69,6 @@ class Complaint extends Component {
                 {key: 'employment', text: 'Employment agencies', value: 'employment'},
                 {key: 'general', text: 'General feedback', value: 'general'},
             ];
-            const statusOptions = [
-                {key: "status-received", text: "Received", value: "received"},
-                {key: "status-pending", text: "Pending", value: "pending"},
-                {key: "status-closed", text: "Closed", value: "closed"},
-            ];
             const severityOptions = [
                 {key: "severity-high", text: "High", value: "high"},
                 {key: "severity-medium", text: "Medium", value: "medium"},
@@ -75,13 +77,11 @@ class Complaint extends Component {
             const discardChanges = () => {
                 this.setState({editFeedback: feedback, hasEdits: false});
             };
-            return (<Form size="massive" style={{paddingRight: '25px'}}>
+            return (<Form size="large" style={{paddingRight: '25px'}}>
                 <Form.Select label="Type" inline onChange={this.handleChange.bind(this)}
                              name="internal" options={typeOptions} value={editFeedback.internal}/>
                 <Form.Select label="Category" inline onChange={this.handleChange.bind(this)}
                              name="area" options={categoryOptions} value={editFeedback.area}/>
-                <Form.Select label="Status" inline onChange={this.handleChange.bind(this)}
-                             name="status" options={statusOptions} value={editFeedback.status}/>
                 <Form.Select label="Severity" inline onChange={this.handleChange.bind(this)}
                              name="severity" options={severityOptions} value={editFeedback.severity}/>
                 <Form.Input label="Deadline" inline onChange={this.handleChange.bind(this)}
@@ -89,7 +89,7 @@ class Complaint extends Component {
                 <Form.Group>
                     <Form.Input label="Assign" inline onChange={this.handleChange.bind(this)}
                                 name="assignment" value={editFeedback.assignment}/>
-                    <Form.Button style={{marginTop: '15px'}} content="Take Case" color="grey"/>
+                    <Form.Button content="Take Case" color="grey"/>
                 </Form.Group>
                 <Form.Group widths={"equal"}>
                     <Form.Button content="Save Changes" color="green" disabled={!hasEdits}/>
@@ -99,7 +99,7 @@ class Complaint extends Component {
             </Form>)
         };
 
-        const getRightPanel = () => {
+        const getLeftPanel = () => {
             const infoPanel = (<Tab.Pane><Table><Table.Body>
                 <Table.Row>
                     <Table.Cell><b>Name</b></Table.Cell>
@@ -131,27 +131,115 @@ class Complaint extends Component {
                 </Table.Row>
             </Table.Body></Table></Tab.Pane>);
 
-            const actionPanel = () => {
-                const openSpam = () => {
-                    modal.spam = !modal.spam;
-                    this.setState({modal});
-                };
-                const okSpam = () => {Meteor.call('markSpam', feedback._id, openSpam)};
-                const confirmSpam = (<Confirm open={modal.spam} content="Mark this feedback as spam?"
-                             onCancel={openSpam} onConfirm={okSpam}
-                    />);
+            const panes = [
+                {
+                    menuItem: {key: 'leftpanel-form', icon: 'info', content: 'Info'},
+                    render: () => (<Tab.Pane>{getDetailsForm()}</Tab.Pane>)
+                },
+                {
+                    menuItem: {key: 'leftpanel-info', icon: 'wpforms', content: 'Feedback'},
+                    render: () => (infoPanel)
+                },
+            ]
 
+            return (<Tab panes={panes}/>)
+        };
+
+        const getRightPanel = () => {
+
+            const actionPanel = () => {
+                const okSpam = () => {
+                    Meteor.call('markSpam', feedback._id, openSpam)
+                };
+                const closeCase = (evt, data) => {
+                    const finalRemarks = editFeedback.finalRemarks;
+                    editFeedback.finalRemarks = "";
+                    this.setState({editFeedback: editFeedback});
+
+                    if (data.negative) return;
+
+                    Meteor.call('closeCase', feedback._id, finalRemarks);
+                };
+
+                const forwardMessage = (evt, data) => {
+                    const message = editFeedback.forwardMessage;
+                    const department = editFeedback.forwardDepartment;
+                    editFeedback.forwardMessage = "";
+                    editFeedback.forwardDepartment = "";
+                    this.setState({editFeedback: editFeedback});
+
+                    if (data.negative) return;
+
+                    Meteor.call('forwardFeedback', feedback._id, message, department);
+                };
+
+                const getActionSegments = () => {
+                    const {actionPanelSegment} = this.state;
+                    let content = "";
+                    switch (actionPanelSegment) {
+                        case 'forward':
+                            content = (<Form>
+                                <Header content="Choose department to forward to"/>
+                                <Select name="forwardDepartment" value={editFeedback.forwardDepartment}
+                                        onChange={this.handleChange.bind(this)} fluid
+                                        placeholder="Select department to forward to..." options={[
+                                    {key: 'momdept-foreign', value: 'foreign', text: 'Foreign Manpower'},
+                                    {key: 'momdept-hr', value: 'hr', text: 'Human Resource'},
+                                    {key: 'momdept-legal', value: 'legal', text: 'Legal Services'},
+                                    {key: 'momdept-safetyhealth', value: 'safetyhealth', text: 'Safety and Health'},
+                                    {key: 'momdept-workpass', value: 'workpass', text: 'Work Pass'},
+                                ]}/>
+                                <TextArea style={{marginTop: '14px'}} name="forwardMessage" rows="6"
+                                          value={editFeedback.forwardMessage}
+                                          placeholder="Addtional message details"
+                                          onChange={this.handleChange.bind(this)}/>
+
+                                <Button.Group floated="right" style={{paddingTop: "20px"}}>
+                                    <Button onClick={forwardMessage} content="Reset" icon="cancel" negative/>
+                                    <Button onClick={forwardMessage} content="Forward" icon="check" positive/>
+                                </Button.Group>
+                            </Form>);
+                            break;
+                        case 'spam':
+                            content = (<div>
+                                <Header content="Mark as Spam?"/>
+                                <Button onClick={okSpam} content="Confirm" icon="check" positive floated="right"/>
+                            </div>);
+                            break;
+                        case 'close':
+                            content = (<Form>
+                                <Header content="Final Remarks"/>
+                                <TextArea name="finalRemarks" rows="6" value={editFeedback.finalRemarks}
+                                          placeholder="e.g. Actions taken / Followed up by / Verdict etc."
+                                          onChange={this.handleChange.bind(this)}/>
+                                <Button.Group floated="right" style={{paddingTop: "20px"}}>
+                                    <Button onClick={closeCase} content="Discard Changes" icon="cancel" negative/>
+                                    <Button onClick={closeCase} content="Close Feedback" icon="check" positive/>
+                                </Button.Group>
+                            </Form>);
+                            break;
+                        default:
+                            content = "Last Updated: " + feedback.lastUpdated;
+                            break;
+                    }
+
+                    return (<Segment basic style={{paddingTop: '0px'}}>{content}</Segment>)
+                };
+
+                const setActionSegment = (segment) => this.setState({actionPanelSegment: segment});
 
                 return (<Tab.Pane><Grid>
                     <Grid.Row columns={1} textAlign="center"><Grid.Column><Menu compact stackable>
                         <Menu.Item link href={"mailto:" + feedback.email}><Icon name="reply"/>Reply Sender</Menu.Item>
-                        <Menu.Item link><Icon name="mail forward"/>Forward</Menu.Item>
-                        <Menu.Item link><Icon name="close"/>Close</Menu.Item>
-                        <Menu.Item link onClick={openSpam}><Icon name="ban"/>Spam</Menu.Item>
+                        <Menu.Item link onClick={setActionSegment.bind(this, 'forward')}><Icon name="mail forward"/>Forward</Menu.Item>
+                        <Menu.Item link onClick={setActionSegment.bind(this, 'close')}><Icon
+                            name="close"/>Close</Menu.Item>
+                        <Menu.Item link onClick={setActionSegment.bind(this, 'spam')}><Icon name="ban"/>Spam</Menu.Item>
                     </Menu></Grid.Column></Grid.Row>
                     <Grid.Row columns={1}><Grid.Column>
+                        {getActionSegments()}
                     </Grid.Column></Grid.Row>
-                </Grid>{confirmSpam}</Tab.Pane>)
+                </Grid></Tab.Pane>)
             };
 
             const notePanel = (<Tab.Pane>
@@ -159,10 +247,6 @@ class Complaint extends Component {
             </Tab.Pane>);
 
             const panes = [
-                {
-                    menuItem: {key: 'rightpanel-info', icon: 'info', content: 'Info'},
-                    render: () => (infoPanel)
-                },
                 {
                     menuItem: {key: 'rightpanel-action', icon: 'hand pointer', content: 'Actions'},
                     render: () => (actionPanel())
@@ -177,16 +261,14 @@ class Complaint extends Component {
 
         if (loading) return "Loading";
         return (<Grid>
-            <Grid.Row columns={1}><Grid.Column>
+            <Grid.Row columns={1} textAlign="center"><Grid.Column>
                 <Header size="large" textAlign="center" content={"Complaint ID: " + feedback._id}/>
+                <Label size="large" content="Status" detail={feedback.status}/>
             </Grid.Column></Grid.Row>
             <Grid.Row columns={2}>
                 <Grid.Column><Grid>
                     <Grid.Row columns={1}><Grid.Column>
-                        <Header textAlign="center" content="Details"/>
-                    </Grid.Column></Grid.Row>
-                    <Grid.Row columns={1} textAlign="right"><Grid.Column>
-                        {getDetailsForm()}
+                        {getLeftPanel()}
                     </Grid.Column></Grid.Row>
                 </Grid></Grid.Column>
                 <Grid.Column>{getRightPanel()}</Grid.Column>

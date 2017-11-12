@@ -69,5 +69,13 @@ Meteor.methods({
 
     markSpam(id) {
         Feedback.update({_id: id}, {$set: {status: "spam"}});
+    },
+
+    closeCase(id, remarks) {
+        Feedback.update({_id: id}, {$set: {status: "closed", finalRemarks: remarks}});
+    },
+
+    forwardFeedback(id, message) {
+
     }
 });
