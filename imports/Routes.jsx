@@ -6,12 +6,15 @@ import PublicApp from './ui/public/App';
 import MomApp from './ui/mom/App';
 import Login from './ui/mom/Login';
 
+import Debug from './ui/system/Debug';
+
 export const RenderRoutes = () => (
     <Router>
         <div><Switch>
             <Route exact path="/" component={PublicApp}/>
             <Route path="/public" component={PublicApp}/>
             <Route exact path='/mom/login' component={Login}/>
+            <Route exact path='/debug' component={Debug}/>
             <AuthRoute path="/mom" component={MomApp}/>
         </Switch></div>
     </Router>
