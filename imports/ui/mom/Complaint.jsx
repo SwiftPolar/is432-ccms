@@ -246,6 +246,10 @@ class Complaint extends Component {
                 NOTES
             </Tab.Pane>);
 
+            const historyPanel = (<Tab.Pane>
+                HISTORY
+            </Tab.Pane>);
+
             const panes = [
                 {
                     menuItem: {key: 'rightpanel-action', icon: 'hand pointer', content: 'Actions'},
@@ -255,9 +259,13 @@ class Complaint extends Component {
                     menuItem: {key: 'rightpanel-note', icon: 'sticky note outline', content: 'Notes'},
                     render: () => (notePanel)
                 },
-            ]
+                {
+                    menuItem: {key: 'rightpanel-history', icon: 'history', content: 'History'},
+                    render: () => (historyPanel)
+                },
+            ];
             return (<Tab panes={panes}/>)
-        }
+        };
 
         if (loading) return "Loading";
         return (<Grid>

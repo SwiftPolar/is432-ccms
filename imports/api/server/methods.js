@@ -50,7 +50,8 @@ Meteor.methods({
             deadline: "",
             notes: "",
             files: [],
-            assignment: ""
+            assignment: "",
+            history: []
         });
         if (files && files.length > 0) {
             writeFiles(files, filesName, feedbackID);
