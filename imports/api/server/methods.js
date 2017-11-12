@@ -54,7 +54,7 @@ Meteor.methods({
             severity: "unassigned",
             internal: "",
             deadline: "",
-            notes: "",
+            notes: [],
             files: [],
             additionalFiles: [],
             assignment: "",
@@ -88,6 +88,19 @@ Meteor.methods({
         let user = Meteor.user();
         if (!user) throw new Meteor.Error('500 Permissions Denied');
         writeFiles(files, filesName, id, true);
+        //TODO: ADD IN HISTORY COMPONENT
+
+    },
+
+    addNewNote(id, note) {
+        if (!id || !note) throw new Meteor.Error('500 Internal Server Error');
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
+        Feedback.update(id, {$push: {notes: {
+            author: user.username,
+            date: new Date(),
+            message: note
+        }}});
         //TODO: ADD IN HISTORY COMPONENT
 
     },

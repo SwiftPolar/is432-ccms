@@ -3,8 +3,9 @@ import {withTracker} from 'meteor/react-meteor-data';
 import {Feedback} from '../../api/collections.js';
 import {
     Grid, Header, Form, Tab, Table, List, Menu, Icon, TextArea,
-    Segment, Button, Modal, Confirm, Label, Select, Input
+    Segment, Button, Modal, Confirm, Label, Select, Input, Comment
 } from 'semantic-ui-react';
+import moment from 'moment';
 
 class Complaint extends Component {
     constructor(props) {
@@ -37,7 +38,7 @@ class Complaint extends Component {
     handleChange(evt, {name, value}) {
         const {editFeedback, feedback} = this.state;
         let hasEdits = false;
-        const changeExceptions = ['finalRemarks', 'forwardMessage', 'forwardDepartment'];
+        const changeExceptions = ['finalRemarks', 'forwardMessage', 'forwardDepartment', 'noteInput'];
         if (changeExceptions.indexOf(name) !== -1) {
 
         } else if (value != feedback[name]) {
@@ -59,6 +60,15 @@ class Complaint extends Component {
     uploadAdditionalFiles() {
         const {files, filesName, feedback} = this.state;
         Meteor.call('uploadAdditionalFiles', feedback._id, files, filesName);
+    }
+
+    addNewNote() {
+        const {editFeedback, feedback} = this.state;
+        Meteor.call('addNewNote', feedback._id, editFeedback.noteInput, (err, res) => {
+            if (err) return;
+            editFeedback.noteInput = "";
+            this.setState({editFeedback});
+        });
     }
 
     render() {
@@ -328,7 +338,23 @@ class Complaint extends Component {
             };
 
             const notePanel = (<Tab.Pane>
-                NOTES
+                <Form reply>
+                    <Form.TextArea name="noteInput" value={editFeedback.noteInput} onChange={this.handleChange.bind(this)}/>
+                    <Button content='Add Note' labelPosition='left' icon='edit' primary
+                            onClick={this.addNewNote.bind(this)}/>
+                </Form>
+                {feedback.notes ? (<Comment.Group>
+                    {feedback.notes.reverse().map((note) => {
+                        const {message, author, date} = note;
+                        return <Comment key={author + date.toString()}>
+                            <Comment.Content>
+                                <Comment.Author content={author} />
+                                <Comment.Metadata content={moment(date).format('lll')} />
+                                <Comment.Text content={message} />
+                            </Comment.Content>
+                        </Comment>
+                    })}
+                </Comment.Group>) : ("None")}
             </Tab.Pane>);
 
             const historyPanel = (<Tab.Pane>
