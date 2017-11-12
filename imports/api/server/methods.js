@@ -65,6 +65,21 @@ Meteor.methods({
         return feedbackID;
     },
 
+    updateFeedbackInfo(id, data) {
+        if (!id || !data) throw new Meteor.Error('500 Internal Server Error');
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
+        const {assignment, severity, internal, deadline} = data;
+        const updateTime = new Date();
+        Feedback.update(id, {$set: {
+            lastUpdated: updateTime,
+            status: assignment ? "pending" : "received",
+            severity, internal,
+            deadline: new Date(deadline),
+            assignment
+        }});
+    },
+
     checkFeedback(id, feedbackId) {
         if (!id || !feedbackId) {
             throw new Meteor.Error("500 Internal Server Error");

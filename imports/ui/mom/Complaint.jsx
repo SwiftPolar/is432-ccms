@@ -12,7 +12,7 @@ class Complaint extends Component {
         this.state = {
             user: props.user,
             feedback: false,
-            editFeedback: false,
+            editFeedback: "",
             loading: props.loading,
             hasEdits: false,
             modal: {
@@ -80,6 +80,21 @@ class Complaint extends Component {
             const discardChanges = () => {
                 this.setState({editFeedback: feedback, hasEdits: false});
             };
+            const saveChanges = () => {
+                Meteor.call('updateFeedbackInfo', feedback._id, editFeedback, (err, res) => {
+                    if (err) return;
+                    this.setState({editFeedback: feedback, hasEdits: false});
+                });
+            };
+            const getDate = () => {
+                try {
+                    let date = new Date(editFeedback.deadline).toISOString().substring(0, 10);
+                    return date;
+                } catch (err) {
+                    return new Date().toISOString().substring(0, 10)
+                }
+            };
+
             return (<Form size="large" style={{paddingRight: '25px'}}>
                 <Form.Select label="Type" inline onChange={this.handleChange.bind(this)}
                              name="internal" options={typeOptions} value={editFeedback.internal}/>
@@ -88,7 +103,8 @@ class Complaint extends Component {
                 <Form.Select label="Severity" inline onChange={this.handleChange.bind(this)}
                              name="severity" options={severityOptions} value={editFeedback.severity}/>
                 <Form.Input label="Deadline" inline onChange={this.handleChange.bind(this)}
-                            name="deadline" type="date" value={editFeedback.deadline}/>
+                            name="deadline" type="date"
+                            value={getDate()}/>
                 <Form.Group>
                     <Form.Input label="Assign" inline onChange={this.handleChange.bind(this)}
                                 name="assignment" value={editFeedback.assignment} disabled={!isSupervisor}/>
@@ -99,7 +115,8 @@ class Complaint extends Component {
                                  })}/>
                 </Form.Group>
                 <Form.Group widths={"equal"}>
-                    <Form.Button content="Save Changes" color="green" disabled={!hasEdits}/>
+                    <Form.Button content="Save Changes" color="green" disabled={!hasEdits}
+                                 onClick={saveChanges.bind(this)}/>
                     <Form.Button content="Discard Changes" color="red" disabled={!hasEdits}
                                  onClick={discardChanges.bind(this)}/>
                 </Form.Group>
