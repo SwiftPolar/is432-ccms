@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {withTracker} from 'meteor/react-meteor-data';
 import {Feedback} from '../../api/collections.js';
-import {Grid, Header, Form, Tab, Table, List} from 'semantic-ui-react';
+import {Grid, Header, Form, Tab, Table, List, Menu, Icon, Modal, Confirm} from 'semantic-ui-react';
 
 class Complaint extends Component {
     constructor(props) {
@@ -10,7 +10,11 @@ class Complaint extends Component {
             feedback: false,
             editFeedback: false,
             loading: props.loading,
-            hasEdits: false
+            hasEdits: false,
+            modal: {
+                spam: false,
+                closeCase: false
+            }
         }
     }
 
@@ -45,7 +49,7 @@ class Complaint extends Component {
     }
 
     render() {
-        const {loading, feedback, editFeedback, hasEdits} = this.state;
+        const {loading, feedback, editFeedback, hasEdits, modal} = this.state;
         const getDetailsForm = () => {
             const typeOptions = [
                 {key: "internal", text: "Internal", value: "internal"},
@@ -96,40 +100,77 @@ class Complaint extends Component {
         };
 
         const getRightPanel = () => {
+            const infoPanel = (<Tab.Pane><Table><Table.Body>
+                <Table.Row>
+                    <Table.Cell><b>Name</b></Table.Cell>
+                    <Table.Cell>{feedback.name}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>NRIC/FIN</b></Table.Cell>
+                    <Table.Cell>{feedback.id}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Email</b></Table.Cell>
+                    <Table.Cell>{feedback.email}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Details</b></Table.Cell>
+                    <Table.Cell>{feedback.details}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Attachments</b></Table.Cell>
+                    <Table.Cell>{feedback.files ? (<List bulleted>
+                        {feedback.files.map((file) => {
+                            return <List.Item key={file}>
+                                <a target="_blank" href={file}>
+                                    {file.substring(file.lastIndexOf('/') + 1)}
+                                </a>
+                            </List.Item>
+                        })}
+                    </List>) : ("None")}</Table.Cell>
+                </Table.Row>
+            </Table.Body></Table></Tab.Pane>);
+
+            const actionPanel = () => {
+                const openSpam = () => {
+                    modal.spam = !modal.spam;
+                    this.setState({modal});
+                };
+                const okSpam = () => {Meteor.call('markSpam', feedback._id, openSpam)};
+                const confirmSpam = (<Confirm open={modal.spam} content="Mark this feedback as spam?"
+                             onCancel={openSpam} onConfirm={okSpam}
+                    />);
+
+
+                return (<Tab.Pane><Grid>
+                    <Grid.Row columns={1} textAlign="center"><Grid.Column><Menu compact stackable>
+                        <Menu.Item link href={"mailto:" + feedback.email}><Icon name="reply"/>Reply Sender</Menu.Item>
+                        <Menu.Item link><Icon name="mail forward"/>Forward</Menu.Item>
+                        <Menu.Item link><Icon name="close"/>Close</Menu.Item>
+                        <Menu.Item link onClick={openSpam}><Icon name="ban"/>Spam</Menu.Item>
+                    </Menu></Grid.Column></Grid.Row>
+                    <Grid.Row columns={1}><Grid.Column>
+                    </Grid.Column></Grid.Row>
+                </Grid>{confirmSpam}</Tab.Pane>)
+            };
+
+            const notePanel = (<Tab.Pane>
+                NOTES
+            </Tab.Pane>);
+
             const panes = [
                 {
                     menuItem: {key: 'rightpanel-info', icon: 'info', content: 'Info'},
-                    render: () => (<Tab.Pane><Table><Table.Body>
-                        <Table.Row>
-                            <Table.Cell><b>Name</b></Table.Cell>
-                            <Table.Cell>{feedback.name}</Table.Cell>
-                        </Table.Row>
-                        <Table.Row>
-                            <Table.Cell><b>NRIC/FIN</b></Table.Cell>
-                            <Table.Cell>{feedback.id}</Table.Cell>
-                        </Table.Row>
-                        <Table.Row>
-                            <Table.Cell><b>Email</b></Table.Cell>
-                            <Table.Cell>{feedback.email}</Table.Cell>
-                        </Table.Row>
-                        <Table.Row>
-                            <Table.Cell><b>Details</b></Table.Cell>
-                            <Table.Cell>{feedback.details}</Table.Cell>
-                        </Table.Row>
-                        <Table.Row>
-                            <Table.Cell><b>Attachments</b></Table.Cell>
-                            <Table.Cell>{feedback.files ? (<List bulleted>
-                                {feedback.files.map((file) => {
-                                    return <List.Item key={file}>
-                                        <a target="_blank" href={file}>
-                                            {file.substring(file.lastIndexOf('/') + 1)}
-                                        </a>
-                                    </List.Item>
-                                })}
-                            </List>) : ("None")}</Table.Cell>
-                        </Table.Row>
-                    </Table.Body></Table></Tab.Pane>)
-                }
+                    render: () => (infoPanel)
+                },
+                {
+                    menuItem: {key: 'rightpanel-action', icon: 'hand pointer', content: 'Actions'},
+                    render: () => (actionPanel())
+                },
+                {
+                    menuItem: {key: 'rightpanel-note', icon: 'sticky note outline', content: 'Notes'},
+                    render: () => (notePanel)
+                },
             ]
             return (<Tab panes={panes}/>)
         }

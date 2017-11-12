@@ -65,5 +65,9 @@ Meteor.methods({
         }
         let feedback = Feedback.findOne({_id: feedbackId, id: id});
         return feedback;
+    },
+
+    markSpam(id) {
+        Feedback.update({_id: id}, {$set: {status: "spam"}});
     }
 });

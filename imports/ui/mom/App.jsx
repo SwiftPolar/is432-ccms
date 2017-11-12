@@ -31,7 +31,7 @@ export default class MomApp extends Component {
                                      style={{boxShadow: 'none', border: '0', background: '#006eab'}}>
                         <Dropdown item text={<div><Icon name="sidebar"/>MENU</div>}>
                             <Dropdown.Menu style={{background: '#006eab'}}>
-                                <Link to="/mom/dashboard"><Dropdown.Item>
+                                <Link to="/mom"><Dropdown.Item>
                                     Dashboard</Dropdown.Item></Link>
                             </Dropdown.Menu>
                         </Dropdown>
