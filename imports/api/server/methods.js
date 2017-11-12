@@ -6,7 +6,7 @@ Meteor.publish('getFeedback', (id) => {
     return Feedback.find({_id: id});
 });
 
-const writeFiles = (files, filesName, id) => {
+const writeFiles = (files, filesName, id, additional = false) => {
 
     for (let i = 0; i < files.length; i++) {
         let file = files[i];
@@ -28,11 +28,12 @@ const writeFiles = (files, filesName, id) => {
         if (res.status === 'error') { //ERROR returned from file host
             throw new Meteor.Error("Response error!", res.result);
         }
-
-        Feedback.update({_id: id}, {$push: {files: res.result}});
+        if (additional) {
+            Feedback.update({_id: id}, {$push: {additionalFiles: res.result}});
+        } else {
+            Feedback.update({_id: id}, {$push: {files: res.result}});
+        }
     }
-
-
 };
 
 Meteor.methods({
@@ -55,6 +56,7 @@ Meteor.methods({
             deadline: "",
             notes: "",
             files: [],
+            additionalFiles: [],
             assignment: "",
             history: []
         });
@@ -78,6 +80,16 @@ Meteor.methods({
             deadline: new Date(deadline),
             assignment
         }});
+        //TODO: ADD IN HISTORY COMPONENT
+    },
+
+    uploadAdditionalFiles(id, files, filesName) {
+        if (!id || !files || !filesName) throw new Meteor.Error('500 Internal Server Error');
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
+        writeFiles(files, filesName, id, true);
+        //TODO: ADD IN HISTORY COMPONENT
+
     },
 
     checkFeedback(id, feedbackId) {

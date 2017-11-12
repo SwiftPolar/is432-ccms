@@ -56,6 +56,11 @@ class Complaint extends Component {
         this.setState({editFeedback, hasEdits});
     }
 
+    uploadAdditionalFiles() {
+        const {files, filesName, feedback} = this.state;
+        Meteor.call('uploadAdditionalFiles', feedback._id, files, filesName);
+    }
+
     render() {
         const {loading, feedback, editFeedback, hasEdits, modal, user} = this.state;
         const isSupervisor = user.role === "supervisor";
@@ -155,7 +160,57 @@ class Complaint extends Component {
                 </Table.Row>
             </Table.Body></Table></Tab.Pane>);
 
-            const additionalInfo = (<Tab.Pane>ADDITIONAL INFO</Tab.Pane>)
+            const additionalInfo = () => {
+                const handleFiles = (evt, data) => {
+                    const files = evt.target.files;
+                    this.setState({files: [], filesName: []});
+                    for (var i = 0; i < files.length; i++) {
+                        let file = files.item(i);
+                        let fileReader = new FileReader(),
+                            method, encoding = 'binary', type = type || 'binary';
+                        switch (type) {
+                            case 'text':
+                                method = 'readAsText';
+                                encoding = 'utf8';
+                                break;
+                            case 'binary':
+                                method = 'readAsBinaryString';
+                                encoding = 'binary';
+                                break;
+                            default:
+                                method = 'readAsBinaryString';
+                                encoding = 'binary';
+                                break;
+                        }
+                        fileReader.onload = (res) => {
+                            let {files, filesName} = this.state;
+                            files.push(res.target.result);
+                            filesName.push(file.name);
+                            this.setState({files, filesName});
+                        };
+                        fileReader[method](file);
+
+                    }
+                };
+
+                return (<Tab.Pane>
+                    <Form>
+                        <Form.Input onChange={handleFiles.bind(this)} type="file" multiple
+                                    label='Upload Additional Files' placeholder='Select Files'/>
+                        <Form.Button content="Upload" onClick={this.uploadAdditionalFiles.bind(this)}/>
+                    </Form>
+                    <Header content="Additional Files Uploaded"/>
+                    {feedback.additionalFiles ? (<List bulleted>
+                        {feedback.additionalFiles.map((file) => {
+                            return <List.Item key={file}>
+                                <a target="_blank" href={file}>
+                                    {file.substring(file.lastIndexOf('/') + 1)}
+                                </a>
+                            </List.Item>
+                        })}
+                    </List>) : ("None")}
+                </Tab.Pane>);
+            };
 
             const panes = [
                 {
@@ -168,7 +223,7 @@ class Complaint extends Component {
                 },
                 {
                     menuItem: {key: 'leftpanel-additionalinfo', icon: 'info circle', content: 'Additional'},
-                    render: () => (additionalInfo)
+                    render: () => (additionalInfo())
                 },
             ]
 
