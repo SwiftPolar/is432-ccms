@@ -243,6 +243,24 @@ class Complaint extends Component {
         const getRightPanel = () => {
 
             const actionPanel = () => {
+                if (feedback.status === 'closed') {
+                    return (<Tab.Pane><Grid>
+                        <Grid.Row columns={1} style={{paddingBottom: '0px'}}><Grid.Column>
+                            <Segment basic>
+                                <Header content="Final Remarks"/>
+                                {feedback.finalRemarks}<br/>
+                                Case closed on: {moment(feedback.closeDate).format('lll')}
+                            </Segment>
+                        </Grid.Column></Grid.Row>
+                        <Grid.Row columns={1}><Grid.Column>
+                            <Button onClick={()=> {
+                                Meteor.call('openCase', feedback._id)
+                            }}
+                                    content="Reopen Case"/>
+                        </Grid.Column></Grid.Row>
+
+                    </Grid></Tab.Pane>)
+                }
                 const okSpam = () => {
                     Meteor.call('markSpam', feedback._id, openSpam)
                 };
@@ -314,7 +332,7 @@ class Complaint extends Component {
                             </Form>);
                             break;
                         default:
-                            content = "Last Updated: " + feedback.lastUpdated;
+                            content = "Last Updated: " + moment(feedback.lastUpdated).format('lll');
                             break;
                     }
 
@@ -339,7 +357,8 @@ class Complaint extends Component {
 
             const notePanel = (<Tab.Pane>
                 <Form reply>
-                    <Form.TextArea name="noteInput" value={editFeedback.noteInput} onChange={this.handleChange.bind(this)}/>
+                    <Form.TextArea name="noteInput" value={editFeedback.noteInput}
+                                   onChange={this.handleChange.bind(this)}/>
                     <Button content='Add Note' labelPosition='left' icon='edit' primary
                             onClick={this.addNewNote.bind(this)}/>
                 </Form>
@@ -348,9 +367,9 @@ class Complaint extends Component {
                         const {message, author, date} = note;
                         return <Comment key={author + date.toString()}>
                             <Comment.Content>
-                                <Comment.Author content={author} />
-                                <Comment.Metadata content={moment(date).format('lll')} />
-                                <Comment.Text content={message} />
+                                <Comment.Author content={author}/>
+                                <Comment.Metadata content={moment(date).format('lll')}/>
+                                <Comment.Text content={message}/>
                             </Comment.Content>
                         </Comment>
                     })}

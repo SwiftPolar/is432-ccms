@@ -114,14 +114,33 @@ Meteor.methods({
     },
 
     markSpam(id) {
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
         Feedback.update({_id: id}, {$set: {status: "spam"}});
+        //TODO: ADD IN HISTORY COMPONENT
+
     },
 
     closeCase(id, remarks) {
-        Feedback.update({_id: id}, {$set: {status: "closed", finalRemarks: remarks}});
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
+        let date = new Date();
+        Feedback.update({_id: id}, {$set: {status: "closed", finalRemarks: remarks,
+            lastUpdated: date, closeDate: date}});
+        //TODO: ADD IN HISTORY COMPONENT
+
+    },
+
+    openCase(id) {
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
+        Feedback.update({_id: id}, {$set: {status: "pending", assignment: user.username, lastUpdated: new Date()}});
+        //TODO: ADD IN HISTORY COMPONENT
+
     },
 
     forwardFeedback(id, message) {
+        //TODO: ADD IN HISTORY COMPONENT
 
     }
 });
