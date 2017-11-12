@@ -138,6 +138,8 @@ class Complaint extends Component {
                 </Table.Row>
             </Table.Body></Table></Tab.Pane>);
 
+            const additionalInfo = (<Tab.Pane>ADDITIONAL INFO</Tab.Pane>)
+
             const panes = [
                 {
                     menuItem: {key: 'leftpanel-form', icon: 'info', content: 'Info'},
@@ -146,6 +148,10 @@ class Complaint extends Component {
                 {
                     menuItem: {key: 'leftpanel-info', icon: 'wpforms', content: 'Feedback'},
                     render: () => (infoPanel)
+                },
+                {
+                    menuItem: {key: 'leftpanel-additionalinfo', icon: 'info circle', content: 'Additional'},
+                    render: () => (additionalInfo)
                 },
             ]
 
