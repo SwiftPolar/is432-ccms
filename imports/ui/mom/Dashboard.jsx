@@ -39,7 +39,10 @@ class Dashboard extends Component {
             }
             const oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
             const currentDate = new Date();
-            const diffDays = Math.round(Math.abs((deadline.getTime() - currentDate.getTime())/(oneDay)));
+            let diffDays = 0;
+            try {
+                diffDays = Math.round(Math.abs((deadline.getTime() - currentDate.getTime())/(oneDay)));
+            } catch(err) {}
             const diffDaysCat = diffDays > 30 ? "more" : diffDays < 7 ? "less" : "medium";
 
             stats[severity].count++;
