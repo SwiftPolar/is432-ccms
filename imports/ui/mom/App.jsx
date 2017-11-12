@@ -1,18 +1,27 @@
 import React, {Component} from 'react';
 import {Grid, Image, Menu, Container, Icon, Dropdown, Breadcrumb} from 'semantic-ui-react';
 import {Link, Route} from 'react-router-dom';
+import {withTracker} from 'meteor/react-meteor-data';
+
 
 import Dashboard from './Dashboard';
 import Complaint from './Complaint';
 
-export default class MomApp extends Component {
-    constructor({match}) {
+class MomApp extends Component {
+    constructor(props) {
         super();
-        this.state = {match};
+        this.state = {
+            match: props.match,
+            user: props.user ? props.user : {}
+        };
+    }
+
+    componentWillReceiveProps(props) {
+        this.setState({user: props.user ? props.user : {}})
     }
 
     render() {
-        const {match} = this.state;
+        const {match, user} = this.state;
 
         return (<div>
             <Grid >
@@ -40,15 +49,15 @@ export default class MomApp extends Component {
                             {key: 'feedbackMgmt', content: 'Feedback Management'},
                         ]}/></Menu.Item>
                         <Menu.Item position="right">
-                            Welcome back, USER {/* TODO: change to user logged in */}
+                            Welcome back, {user.username}!
                         </Menu.Item>
                     </Menu></Container>
                 </Grid.Row>
                 <Grid.Row>
                     <Grid container>
                         <Grid.Row><Grid.Column width={16}>
-                            <Route exact path={match.url} component={Dashboard}/>
-                            <Route exact path={match.url + "/complaint/:id"} component={Complaint}/>
+                            <Route exact path={match.url} component={Dashboard} user={user}/>
+                            <Route exact path={match.url + "/complaint/:id"} user={user} component={Complaint}/>
                         </Grid.Column></Grid.Row>
                     </Grid>
                 </Grid.Row>
@@ -56,3 +65,18 @@ export default class MomApp extends Component {
         </div>)
     }
 }
+
+
+export default MomAppContainer = withTracker(({...rest}) => {
+    const user = Meteor.user();
+    if (user) {
+        Meteor.call('getUserRole', (err, res) => {
+            if (err) return;
+            user.role = res;
+        });
+    }
+    return {
+        user,
+        ...rest
+    }
+})(MomApp);

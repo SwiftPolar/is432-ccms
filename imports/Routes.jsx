@@ -41,12 +41,11 @@ class AuthRouteComponent extends Component {
         );
     }
 }
-;
 
-const AuthRoute = withTracker((props) => {
+const AuthRoute = withTracker(({...rest}) => {
     const user = Meteor.user();
     return {
         user,
-        props
+        ...rest
     }
 })(AuthRouteComponent);

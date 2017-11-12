@@ -36,6 +36,11 @@ const writeFiles = (files, filesName, id) => {
 };
 
 Meteor.methods({
+    getUserRole() {
+        let user = Meteor.user();
+        if (!user) return null;
+        return user.role;
+    },
     newFeedback(feedback) {
         if (!feedback || !feedback.area || !feedback.type || !feedback.details || !feedback.id || !feedback.email || !feedback.name) {
             throw new Meteor.Error("500 Internal Server Error");
