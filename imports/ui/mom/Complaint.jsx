@@ -3,7 +3,7 @@ import {withTracker} from 'meteor/react-meteor-data';
 import {Feedback} from '../../api/collections.js';
 import {
     Grid, Header, Form, Tab, Table, List, Menu, Icon, TextArea,
-    Segment, Button, Modal, Confirm, Label, Select, Input, Comment
+    Segment, Button, Modal, Confirm, Label, Select, Input, Comment, Feed
 } from 'semantic-ui-react';
 import moment from 'moment';
 
@@ -20,7 +20,9 @@ class Complaint extends Component {
                 spam: false,
                 closeCase: false
             },
-            actionPanelSegment: 'default'
+            actionPanelSegment: 'default',
+            feedbackNotes: [],
+            feedbackHistory: []
         }
     }
 
@@ -33,6 +35,23 @@ class Complaint extends Component {
                 Object.assign({}, feedback) : false,
             loading
         });
+
+        if (this.props.feedback) {
+            const currentHistory = this.state.feedbackHistory;
+            if (feedback.history.length !== currentHistory.length) {
+                this.setState({feedbackHistory: feedback.history.reverse()});
+            }
+
+            const currentNotes = this.state.feedbackNotes;
+            if (feedback.notes.length !== currentNotes.length) {
+                this.setState({feedbackNotes: feedback.notes.reverse()});
+            }
+        } else {
+            this.setState({
+                feedbackHistory: feedback.history.reverse(),
+                feedbackNotes: feedback.notes.reverse()
+            });
+        }
     }
 
     handleChange(evt, {name, value}) {
@@ -241,6 +260,7 @@ class Complaint extends Component {
         };
 
         const getRightPanel = () => {
+            const {feedbackNotes, feedbackHistory} = this.state;
 
             const actionPanel = () => {
                 if (feedback.status === 'closed') {
@@ -362,8 +382,8 @@ class Complaint extends Component {
                     <Button content='Add Note' labelPosition='left' icon='edit' primary
                             onClick={this.addNewNote.bind(this)}/>
                 </Form>
-                {feedback.notes ? (<Comment.Group>
-                    {feedback.notes.reverse().map((note) => {
+                {feedbackNotes.length > 0 ? (<Comment.Group>
+                    {feedbackNotes.map((note) => {
                         const {message, author, date} = note;
                         return <Comment key={author + date.toString()}>
                             <Comment.Content>
@@ -376,8 +396,51 @@ class Complaint extends Component {
                 </Comment.Group>) : ("None")}
             </Tab.Pane>);
 
+            let keyCount = 0;
             const historyPanel = (<Tab.Pane>
-                HISTORY
+                {feedbackHistory.length > 0 ? (<Feed>
+                    {feedbackHistory.map((hist) => {
+                        const {date, content, user, type, extra} = hist;
+                        let icon = "clock";
+                        switch (type) {
+                            case "updateInfo":
+                                icon = "info";
+                                break;
+                            case "updateAssignment":
+                                icon = "add user";
+                                break;
+                            case "uploadAdditional":
+                                icon = "info circle";
+                                break;
+                            case "newNote":
+                                icon = "sticky note";
+                                break;
+                            case "spam":
+                                icon = "spy";
+                                break;
+                            case "closeCase":
+                                icon = "close";
+                                break;
+                            case "openCase":
+                                icon = "folder open";
+                                break;
+                            case "forwardFeedback":
+                                icon = "mail forward";
+                                break;
+                        }
+                        keyCount++;
+                        return <Feed.Event key={user + date.toString() + keyCount}>
+                            <Feed.Label icon={icon}/>
+                            <Feed.Content>
+                                <Feed.Summary>
+                                    <Feed.User content={user}/> {content}
+                                    <Feed.Date content={moment(date).format('l')}/>
+                                </Feed.Summary>
+                                {extra ? (<Feed.Extra text content={extra}/>) : ""}
+                            </Feed.Content>
+                        </Feed.Event>
+                    })}
+                </Feed>) : ("None")}
             </Tab.Pane>);
 
             const panes = [

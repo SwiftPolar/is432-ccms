@@ -36,6 +36,44 @@ const writeFiles = (files, filesName, id, additional = false) => {
     }
 };
 
+const pushHistory = (id, {type, info, extra}, user) => {
+    const date = new Date();
+    let content = "";
+    let extraInfo = "";
+
+    switch (type) {
+        case "updateInfo":
+            content = "updated feedback information";
+            break;
+        case "updateAssignment":
+            content = "has assigned the case to " + info;
+            break;
+        case "uploadAdditional":
+            content = "uploaded additional " + info + " file(s)";
+            break;
+        case "newNote":
+            content = "added a new note";
+            extraInfo = extra.length > 30 ? extra.substring(0, 27) + '...' : extra;
+            break;
+        case "spam":
+            content = "marked the case as spam";
+            break;
+        case "closeCase":
+            content = "has closed the case";
+            extraInfo = extra.length > 30 ? extra.substring(0, 27) + '...' : extra;
+            break;
+        case "openCase":
+            content = "has reopend the case";
+            break;
+        case "forwardFeedback":
+            content = "has forwarded the case to " + info;
+            break;
+
+    }
+    let history = {date, content, user, type, extra: extraInfo};
+    Feedback.update(id, {$push: {history: history}});
+};
+
 Meteor.methods({
     getUserRole() {
         let user = Meteor.user();
@@ -73,6 +111,7 @@ Meteor.methods({
         if (!user) throw new Meteor.Error('500 Permissions Denied');
         const {assignment, severity, internal, deadline} = data;
         const updateTime = new Date();
+        const oldFeedback = Feedback.findOne(id);
         Feedback.update(id, {$set: {
             lastUpdated: updateTime,
             status: assignment ? "pending" : "received",
@@ -80,7 +119,10 @@ Meteor.methods({
             deadline: new Date(deadline),
             assignment
         }});
-        //TODO: ADD IN HISTORY COMPONENT
+        pushHistory(id, {type: 'updateInfo'}, user.username);
+        if (oldFeedback.assignment !== assignment) {
+            pushHistory(id, {type: 'updateAssignment', info: assignment}, user.username);
+        }
     },
 
     uploadAdditionalFiles(id, files, filesName) {
@@ -88,7 +130,7 @@ Meteor.methods({
         let user = Meteor.user();
         if (!user) throw new Meteor.Error('500 Permissions Denied');
         writeFiles(files, filesName, id, true);
-        //TODO: ADD IN HISTORY COMPONENT
+        pushHistory(id, {type: 'uploadAdditional', info: files.length}, user.username);
 
     },
 
@@ -101,7 +143,7 @@ Meteor.methods({
             date: new Date(),
             message: note
         }}});
-        //TODO: ADD IN HISTORY COMPONENT
+        pushHistory(id, {type: 'newNote', extra: note}, user.username);
 
     },
 
@@ -117,7 +159,7 @@ Meteor.methods({
         let user = Meteor.user();
         if (!user) throw new Meteor.Error('500 Permissions Denied');
         Feedback.update({_id: id}, {$set: {status: "spam"}});
-        //TODO: ADD IN HISTORY COMPONENT
+        pushHistory(id, {type: 'spam'}, user.username);
 
     },
 
@@ -127,7 +169,7 @@ Meteor.methods({
         let date = new Date();
         Feedback.update({_id: id}, {$set: {status: "closed", finalRemarks: remarks,
             lastUpdated: date, closeDate: date}});
-        //TODO: ADD IN HISTORY COMPONENT
+        pushHistory(id, {type: 'closeCase', extra: remarks}, user.username);
 
     },
 
@@ -135,12 +177,21 @@ Meteor.methods({
         let user = Meteor.user();
         if (!user) throw new Meteor.Error('500 Permissions Denied');
         Feedback.update({_id: id}, {$set: {status: "pending", assignment: user.username, lastUpdated: new Date()}});
-        //TODO: ADD IN HISTORY COMPONENT
+        pushHistory(id, {type: 'openCase'}, user.username);
 
     },
 
-    forwardFeedback(id, message) {
-        //TODO: ADD IN HISTORY COMPONENT
+    forwardFeedback(id, message, department) {
+        let user = Meteor.user();
+        if (!user) throw new Meteor.Error('500 Permissions Denied');
+        const departments = {
+            foreign: 'Foreign Manpower',
+            hr: 'Human Resources',
+            legal: 'Legal Services',
+            safetyhealth: 'Safety and Health',
+            workpass: 'Work Pass'
+        };
+        pushHistory(id, {type: 'forwardFeedback', info: departments[department]}, user.username);
 
     }
 });
