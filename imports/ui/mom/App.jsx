@@ -56,8 +56,10 @@ class MomApp extends Component {
                 <Grid.Row>
                     <Grid container>
                         <Grid.Row><Grid.Column width={16}>
-                            <Route exact path={match.url} component={Dashboard} user={user}/>
-                            <Route exact path={match.url + "/complaint/:id"} user={user} component={Complaint}/>
+                            <Route exact path={match.url}
+                                   render={props => <Dashboard {...props} user={user}/>} />
+                            <Route exact path={match.url + "/complaint/:id"}
+                                   render={props => <Complaint {...props} user={user}/>} />
                         </Grid.Column></Grid.Row>
                     </Grid>
                 </Grid.Row>

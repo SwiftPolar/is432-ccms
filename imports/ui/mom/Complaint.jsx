@@ -10,6 +10,7 @@ class Complaint extends Component {
     constructor(props) {
         super();
         this.state = {
+            user: props.user,
             feedback: false,
             editFeedback: false,
             loading: props.loading,
@@ -56,7 +57,9 @@ class Complaint extends Component {
     }
 
     render() {
-        const {loading, feedback, editFeedback, hasEdits, modal} = this.state;
+        const {loading, feedback, editFeedback, hasEdits, modal, user} = this.state;
+        const isSupervisor = user.role === "supervisor";
+
         const getDetailsForm = () => {
             const typeOptions = [
                 {key: "internal", text: "Internal", value: "internal"},
@@ -88,8 +91,12 @@ class Complaint extends Component {
                             name="deadline" type="date" value={editFeedback.deadline}/>
                 <Form.Group>
                     <Form.Input label="Assign" inline onChange={this.handleChange.bind(this)}
-                                name="assignment" value={editFeedback.assignment}/>
-                    <Form.Button content="Take Case" color="grey"/>
+                                name="assignment" value={editFeedback.assignment} disabled={!isSupervisor}/>
+                    <Form.Button content="Take Case" color="grey"
+                                 onClick={this.handleChange.bind(this, '', {
+                                     name: 'assignment',
+                                     value: user.username
+                                 })}/>
                 </Form.Group>
                 <Form.Group widths={"equal"}>
                     <Form.Button content="Save Changes" color="green" disabled={!hasEdits}/>
@@ -285,11 +292,12 @@ class Complaint extends Component {
     }
 }
 
-export default ComplaintContainer = withTracker((props) => {
+export default ComplaintContainer = withTracker(({...props}) => {
     let id = props.match.params.id;
     const handle = Meteor.subscribe('getFeedback', id);
     return {
         feedbackLoading: !handle.ready(),
         feedback: Feedback.findOne({_id: id}),
+        ...props
     };
 })(Complaint);
