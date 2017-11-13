@@ -129,6 +129,29 @@ class Complaint extends Component {
                 }
             };
 
+            if (feedback.status === 'closed') return (<Table celled basic><Table.Body>
+                <Table.Row>
+                    <Table.Cell><b>Type</b></Table.Cell>
+                    <Table.Cell>{feedback.internal}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Category</b></Table.Cell>
+                    <Table.Cell>{feedback.area}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Severity</b></Table.Cell>
+                    <Table.Cell>{feedback.severity}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Closed Date</b></Table.Cell>
+                    <Table.Cell>{moment(feedback.closeDate).format('lll')}</Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                    <Table.Cell><b>Assign</b></Table.Cell>
+                    <Table.Cell>{feedback.assignment}</Table.Cell>
+                </Table.Row>
+            </Table.Body></Table>);
+
             return (<Form size="large" style={{paddingRight: '25px'}}>
                 <Form.Select label="Type" inline onChange={this.handleChange.bind(this)}
                              name="internal" options={typeOptions} value={editFeedback.internal}/>
