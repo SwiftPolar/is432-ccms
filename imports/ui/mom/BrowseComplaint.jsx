@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {withTracker} from 'meteor/react-meteor-data';
 import {Grid, Header, Segment, Table, Menu, Input} from 'semantic-ui-react';
 import {Feedback} from '../../api/collections';
-import {Link} from 'react-router-dom';
+import {Link, Redirect} from 'react-router-dom';
 
 import moment from 'moment';
 
@@ -10,7 +10,9 @@ class BrowseComplaint extends Component {
     constructor(props) {
         super();
         this.state = {
-            complaintsArr: Feedback.find({type: 'complaint'}).fetch()
+            complaintsArr: Feedback.find({type: 'complaint'}).fetch(),
+            complaint: "",
+            redirect: false
         };
     }
 
@@ -36,7 +38,9 @@ class BrowseComplaint extends Component {
     }
 
     render() {
-        const {complaintsArr} = this.state;
+        const {complaintsArr, redirect, complaint} = this.state;
+
+        if (redirect) return <Redirect to={'/mom/complaint/' + complaint} push/>;
 
         return (<Grid>
             <Grid.Row><Grid.Column width={16}>
@@ -46,11 +50,17 @@ class BrowseComplaint extends Component {
                 <Menu>
                     <Menu.Item>
                         <Input onChange={this.handleSearchId.bind(this)} className='icon'
-                               icon='search' placeholder='Search...' />
+                               icon='search' placeholder='Search...'/>
                     </Menu.Item>
 
                     <Menu.Item position='right'>
-                        <Input action={{ type: 'submit', content: 'Go' }} placeholder='Navigate to...' />
+                        <Input action={{
+                            type: 'submit', content: 'Go', onClick: () => {
+                                this.setState({redirect: true});
+                            }
+                        }} placeholder='Navigate to...' onChange={(evt, data) => {
+                            this.setState({complaint: data.value})
+                        }}/>
                     </Menu.Item>
                 </Menu>
             </Grid.Column></Grid.Row>
