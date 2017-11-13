@@ -253,7 +253,7 @@ class BrowseComplaint extends Component {
                     </Menu.Item>
                 </Menu>
             </Grid.Column></Grid.Row>
-            <Grid.Row><Grid.Column width={16}>
+            <Grid.Row style={{paddingTop: '0px'}}><Grid.Column width={16}>
                 <Dropdown onChange={this.handleFilter.bind(this)} fluid text='Filter' icon='filter' multiple selection options={filterOptions}/>
                 <Table celled>
                     <Table.Header><Table.Row>
