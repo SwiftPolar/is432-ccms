@@ -3,9 +3,11 @@ import {withTracker} from 'meteor/react-meteor-data';
 import {Feedback} from '../../api/collections.js';
 import {
     Grid, Header, Form, Tab, Table, List, Menu, Icon, TextArea,
-    Segment, Button, Modal, Confirm, Label, Select, Input, Comment, Feed
+    Segment, Button, Message, Confirm, Label, Select, Input, Comment, Feed
 } from 'semantic-ui-react';
 import moment from 'moment';
+import 'react-toastify/dist/ReactToastify.min.css';
+import {ToastContainer, toast} from 'react-toastify';
 
 class Compliment extends Component {
     constructor(props) {
@@ -16,10 +18,6 @@ class Compliment extends Component {
             editFeedback: "",
             loading: props.loading,
             hasEdits: false,
-            modal: {
-                spam: false,
-                closeCase: false
-            },
             actionPanelSegment: 'default',
             feedbackNotes: [],
             feedbackHistory: []
@@ -78,20 +76,30 @@ class Compliment extends Component {
 
     uploadAdditionalFiles() {
         const {files, filesName, feedback} = this.state;
-        Meteor.call('uploadAdditionalFiles', feedback._id, files, filesName);
+        Meteor.call('uploadAdditionalFiles', feedback._id, files, filesName, (err, res) => {
+            if (err) {
+                toast.error("An error has occurred!");
+                return
+            }
+            toast.success("Successfully uploaded files!");
+        });
     }
 
     addNewNote() {
         const {editFeedback, feedback} = this.state;
         Meteor.call('addNewNote', feedback._id, editFeedback.noteInput, (err, res) => {
-            if (err) return;
+            if (err) {
+                toast.error("An error has occurred!");
+                return
+            }
             editFeedback.noteInput = "";
             this.setState({editFeedback});
+            toast.success("Successfully added a note!");
         });
     }
 
     render() {
-        const {loading, feedback, editFeedback, hasEdits, modal, user} = this.state;
+        const {loading, feedback, editFeedback, hasEdits, user} = this.state;
         const isSupervisor = user.role === "supervisor";
 
         const getDetailsForm = () => {
@@ -111,8 +119,13 @@ class Compliment extends Component {
             };
             const saveChanges = () => {
                 Meteor.call('updateFeedbackInfo', feedback._id, editFeedback, (err, res) => {
-                    if (err) return;
+                    if (err) {
+                        toast.error("An error has occurred!");
+                        return
+                    }
                     this.setState({hasEdits: false});
+                    toast.success("Successfully saved new feedback info!");
+
                 });
             };
 
@@ -276,7 +289,13 @@ class Compliment extends Component {
                         </Grid.Column></Grid.Row>
                         <Grid.Row columns={1}><Grid.Column>
                             <Button onClick={()=> {
-                                Meteor.call('openCase', feedback._id)
+                                Meteor.call('openCase', feedback._id, (err, res) => {
+                                    if (err) {
+                                        toast.error('An error has occurred!');
+                                        return;
+                                    }
+                                    toast.success('Successfully reopened case!');
+                                })
                             }}
                                     content="Reopen Case"/>
                         </Grid.Column></Grid.Row>
@@ -284,7 +303,13 @@ class Compliment extends Component {
                     </Grid></Tab.Pane>)
                 }
                 const okSpam = () => {
-                    Meteor.call('markSpam', feedback._id, openSpam)
+                    Meteor.call('markSpam', feedback._id, openSpam, (err, res) => {
+                        if (err) {
+                            toast.error('An error has occurred!');
+                            return;
+                        }
+                        toast.success('Marked case as spam!');
+                    })
                 };
                 const closeCase = (evt, data) => {
                     const finalRemarks = editFeedback.finalRemarks;
@@ -293,7 +318,13 @@ class Compliment extends Component {
 
                     if (data.negative) return;
 
-                    Meteor.call('closeCase', feedback._id, finalRemarks);
+                    Meteor.call('closeCase', feedback._id, finalRemarks, (err, res) => {
+                        if (err) {
+                            toast.error('An error has occurred!');
+                            return;
+                        }
+                        toast.success('Closed case!');
+                    });
                 };
 
                 const forwardMessage = (evt, data) => {
@@ -305,7 +336,13 @@ class Compliment extends Component {
 
                     if (data.negative) return;
 
-                    Meteor.call('forwardFeedback', feedback._id, message, department);
+                    Meteor.call('forwardFeedback', feedback._id, message, department, (err, res) => {
+                        if (err) {
+                            toast.error('An error has occurred!');
+                            return;
+                        }
+                        toast.success('Successfully forwarded feedback!!');
+                    });
                 };
 
                 const getActionSegments = () => {
@@ -476,6 +513,8 @@ class Compliment extends Component {
                 </Grid></Grid.Column>
                 <Grid.Column>{getRightPanel()}</Grid.Column>
             </Grid.Row>
+            <ToastContainer position="bottom-right" autoClose={3500} hideProgressBar={true}
+                            newestOnTop={false} closeOnClick pauseOnHover/>
         </Grid>)
     }
 }
