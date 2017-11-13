@@ -14,7 +14,10 @@ class BrowseComplaint extends Component {
             complaint: "",
             redirect: false,
             filter: {type: 'complaint'},
-            searchObject: {}
+            searchObject: {},
+            myAssignment: false,
+            assignedTo: "",
+            filterArr: []
         };
     }
 
@@ -28,25 +31,31 @@ class BrowseComplaint extends Component {
 
     handleSearchId(evt, data) {
         const {value} = data;
-        const {complaints, filter} = this.state;
-        let searchObject = {};
+        const {complaints, filter, myAssignment, assignedTo} = this.state;
+        let searchObject = {type: 'complaint'};
         if (value) {
             searchObject._id = {$regex: value, $options: 'i'};
         }
         if (Object.keys(filter).length > 0) {
             searchObject = Object.assign(filter, searchObject);
         }
+
+        if (myAssignment) {
+            searchObject.assignment = this.props.user.username;
+        } else if (assignedTo) {
+            searchObject.assignment = {$regex: assignedTo, $options: 'i'};
+        }
+
         this.setState({
             searchObject,
             complaintsArr: complaints.find(searchObject).fetch()
-        })
+        });
     }
 
     handleFilter(evt, data) {
-        console.log(data);
         const {value} = data;
-        const {complaints, searchObject} = this.state;
-        let filter = {};
+        const {complaints, searchObject, myAssignment, assignedTo} = this.state;
+        let filter = {type: 'complaint'};
         value.map((val) => {
             let split = val.split('-');
             let k = split[0];
@@ -66,24 +75,75 @@ class BrowseComplaint extends Component {
         if (Object.keys(filter).length > 0) {
             filter = Object.assign(searchObject, filter);
         }
+
+        if (value.length === 0) {
+            delete filter.internal;
+            delete filter.area;
+            delete filter.status;
+            delete filter.severity;
+        }
+
+        if (myAssignment) {
+            filter.assignment = this.props.user.username;
+        } else if (assignedTo) {
+            filter.assignment = {$regex: assignedTo, $options: 'i'};
+        }
+
         this.setState({
             filter,
+            filterArr: value,
             complaintsArr: complaints.find(filter).fetch()
         })
     }
 
+    handleSearchAssign(evt, data) {
+        const {value} = data;
+        const {complaints, filter, searchObject, myAssignment, filterArr} = this.state;
+        this.setState({assignedTo: value});
+        if (myAssignment) return;
+        let finalFilter = Object.assign(searchObject, filter);
+        if (value) {
+            finalFilter.assignment = {$regex: value, $options: 'i'};
+        } else {
+            delete finalFilter.assignment;
+        }
+
+        if (filterArr.length === 0) {
+            delete filter.internal;
+            delete filter.area;
+            delete filter.status;
+            delete filter.severity;
+        }
+
+        this.setState({
+            complaintsArr: complaints.find(finalFilter).fetch()
+        });
+
+    }
+
     handleMyFilter(evt, data) {
         const {checked} = data;
-        let {filter, searchObject, complaints} = this.state;
+        let {filter, searchObject, complaints, assignedTo, filterArr} = this.state;
         if (checked) {
             filter.assignment = this.props.user.username;
+        } else if (assignedTo) {
+            filter.assignment = assignedTo;
         } else {
             delete filter.assignment;
+
         }
         filter = Object.assign(searchObject, filter);
 
+        if (filterArr.length === 0) {
+            delete filter.internal;
+            delete filter.area;
+            delete filter.status;
+            delete filter.severity;
+        }
+
         this.setState({
             filter,
+            myAssignment: checked,
             complaintsArr: complaints.find(filter).fetch()
         })
 
@@ -125,6 +185,10 @@ class BrowseComplaint extends Component {
                     </Menu.Item>
                     <Menu.Item>
                         <Checkbox label="View my assignments" onChange={this.handleMyFilter.bind(this)}/>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Input onChange={this.handleSearchAssign.bind(this)} className='icon'
+                               icon='user' placeholder='Assigned to...'/>
                     </Menu.Item>
 
                     <Menu.Item position='right'>
