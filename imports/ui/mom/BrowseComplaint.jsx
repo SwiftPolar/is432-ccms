@@ -33,7 +33,7 @@ class BrowseComplaint extends Component {
 
     handleSearchId(evt, data) {
         const {value} = data;
-        const {complaints, filter, myAssignment, assignedTo} = this.state;
+        const {filter, myAssignment, assignedTo} = this.state;
         let searchObject = {type: 'complaint'};
         if (value) {
             searchObject._id = {$regex: value, $options: 'i'};
@@ -48,16 +48,20 @@ class BrowseComplaint extends Component {
             searchObject.assignment = {$regex: assignedTo, $options: 'i'};
         }
 
+        if (!value) {
+            delete searchObject._id;
+        }
+
         this.setState({
             searchObject,
             lastFilter: searchObject,
         });
-        this.handleSort();
+        this.sortTable(searchObject);
     }
 
     handleFilter(evt, data) {
         const {value} = data;
-        const {complaints, searchObject, myAssignment, assignedTo} = this.state;
+        const {searchObject, myAssignment, assignedTo} = this.state;
         let filter = {type: 'complaint'};
         value.map((val) => {
             let split = val.split('-');
@@ -97,13 +101,13 @@ class BrowseComplaint extends Component {
             filterArr: value,
             lastFilter: filter
         });
-        this.handleSort();
+        this.sortTable(filter);
 
     }
 
     handleSearchAssign(evt, data) {
         const {value} = data;
-        const {complaints, filter, searchObject, myAssignment, filterArr} = this.state;
+        const {filter, searchObject, myAssignment, filterArr} = this.state;
         this.setState({assignedTo: value});
         if (myAssignment) return;
         let finalFilter = Object.assign(searchObject, filter);
@@ -123,13 +127,13 @@ class BrowseComplaint extends Component {
         this.setState({
             lastFilter: finalFilter,
         });
-        this.handleSort();
+        this.sortTable(finalFilter);
 
     }
 
     handleMyFilter(evt, data) {
         const {checked} = data;
-        let {filter, searchObject, complaints, assignedTo, filterArr} = this.state;
+        let {filter, searchObject, assignedTo, filterArr} = this.state;
         if (checked) {
             filter.assignment = this.props.user.username;
         } else if (assignedTo) {
@@ -153,12 +157,12 @@ class BrowseComplaint extends Component {
             lastFilter: filter,
         });
 
-        this.handleSort();
+        this.sortTable(filter);
 
     }
 
     handleSort(evt, data) {
-        const {lastFilter, complaints, sortBy} = this.state;
+        const {sortBy, lastFilter} = this.state;
         let value = data ? data.value : sortBy;
         let options = {};
         if (value === 'deadline') {
@@ -169,8 +173,21 @@ class BrowseComplaint extends Component {
             options.sort[value] = -1;
         }
         this.setState({
-            sortBy: value,
-            complaintsArr: complaints.find(lastFilter, options).fetch(),
+            sortBy: options,
+        });
+        this.sortTable(lastFilter, options);
+    }
+
+    sortTable(filter, options) {
+        const {complaints, lastFilter, sortBy} = this.state;
+        if (!filter) filter = lastFilter;
+        if (!options && sortBy) {
+            options = sortBy
+        } else if (!options) {
+            options = {};
+        }
+        this.setState({
+            complaintsArr: complaints.find(filter, options).fetch()
         })
     }
 
@@ -194,6 +211,7 @@ class BrowseComplaint extends Component {
             {key: 'filter-severity-high', text: 'High', value: 'severity-high'},
             {key: 'filter-severity-medium', text: 'Medium', value: 'severity-medium'},
             {key: 'filter-severity-low', text: 'Low', value: 'severity-low'},
+            {key: 'filter-severity-unassigned', text: 'Unassigned', value: 'severity-unassigned'},
         ];
 
         if (redirect) return <Redirect to={'/mom/complaint/' + complaint} push/>;

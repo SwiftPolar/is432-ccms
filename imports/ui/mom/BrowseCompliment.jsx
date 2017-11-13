@@ -18,7 +18,7 @@ class BrowseCompliment extends Component {
             myAssignment: false,
             assignedTo: "",
             filterArr: [],
-            sortBy: 'deadline',
+            sortBy: '',
             lastFilter: {}
         };
     }
@@ -33,7 +33,7 @@ class BrowseCompliment extends Component {
 
     handleSearchId(evt, data) {
         const {value} = data;
-        const {compliments, filter, myAssignment, assignedTo} = this.state;
+        const {filter, myAssignment, assignedTo} = this.state;
         let searchObject = {type: 'compliment'};
         if (value) {
             searchObject._id = {$regex: value, $options: 'i'};
@@ -48,18 +48,22 @@ class BrowseCompliment extends Component {
             searchObject.assignment = {$regex: assignedTo, $options: 'i'};
         }
 
+        if (!value) {
+            delete searchObject._id;
+        }
+
         this.setState({
             searchObject,
             lastFilter: searchObject,
         });
 
-        this.handleSort();
+        this.sortTable(searchObject);
 
     }
 
     handleFilter(evt, data) {
         const {value} = data;
-        const {compliments, searchObject, myAssignment, assignedTo} = this.state;
+        const {searchObject, myAssignment, assignedTo} = this.state;
         let filter = {type: 'compliment'};
         value.map((val) => {
             let split = val.split('-');
@@ -98,13 +102,13 @@ class BrowseCompliment extends Component {
             lastFilter: filter,
         });
 
-        this.handleSort();
+        this.sortTable(filter);
 
     }
 
     handleSearchAssign(evt, data) {
         const {value} = data;
-        const {compliments, filter, searchObject, myAssignment, filterArr} = this.state;
+        const {filter, searchObject, myAssignment, filterArr} = this.state;
         this.setState({assignedTo: value});
         if (myAssignment) return;
         let finalFilter = Object.assign(searchObject, filter);
@@ -124,13 +128,13 @@ class BrowseCompliment extends Component {
             lastFilter: finalFilter,
         });
 
-        this.handleSort();
+        this.sortTable(finalFilter);
 
     }
 
     handleMyFilter(evt, data) {
         const {checked} = data;
-        let {filter, searchObject, compliments, assignedTo, filterArr} = this.state;
+        let {filter, searchObject, assignedTo, filterArr} = this.state;
         if (checked) {
             filter.assignment = this.props.user.username;
         } else if (assignedTo) {
@@ -153,12 +157,12 @@ class BrowseCompliment extends Component {
             lastFilter: filter,
         });
 
-        this.handleSort();
+        this.sortTable(filter);
 
     }
 
     handleSort(evt, data) {
-        const {lastFilter, compliments, sortBy} = this.state;
+        const {lastFilter, sortBy} = this.state;
         let value = data ? data.value : sortBy;
         let options = {};
 
@@ -166,9 +170,23 @@ class BrowseCompliment extends Component {
             options.sort = {};
             options.sort[value] = -1;
         }
+
         this.setState({
-            sortBy: value,
-            complimentsArr: compliments.find(lastFilter, options).fetch(),
+            sortBy: options,
+        });
+        this.sortTable(lastFilter, options);
+    }
+
+    sortTable(filter, options) {
+        const {compliments, lastFilter, sortBy} = this.state;
+        if (!filter) filter = lastFilter;
+        if (!options && sortBy) {
+            options = {sort: sortBy};
+        } else if (!options) {
+            options = {};
+        }
+        this.setState({
+            complimentsArr: compliments.find(filter, options).fetch()
         })
     }
 
