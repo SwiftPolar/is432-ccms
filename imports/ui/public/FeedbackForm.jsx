@@ -204,8 +204,8 @@ export default class FeedbackForm extends Component {
                 <div>
                     <Segment size='massive' basic style={{paddingLeft: '100px', paddingRight: '100px'}}>
                         <Header size='large' content="File a Feedback" textAlign='center'/>
-                        You can send feedback (Complaint/Compliment) about passes, employment practices,
-                        workplace safety and health and general feedback.
+                        <p>You can send feedback (Complaint/Compliment) about passes, employment practices,
+                        workplace safety and health and general feedback.</p>
                     </Segment>
                     <Grid style={{paddingLeft: '100px', paddingRight: '100px'}} centered>
                         <Grid.Row>
