@@ -6,6 +6,7 @@ import {withTracker} from 'meteor/react-meteor-data';
 
 import Dashboard from './Dashboard';
 import Complaint from './Complaint';
+import BrowseComplaint from './BrowseComplaint';
 
 class MomApp extends Component {
     constructor(props) {
@@ -60,6 +61,8 @@ class MomApp extends Component {
                                    render={props => <Dashboard {...props} user={user}/>} />
                             <Route exact path={match.url + "/complaint/:id"}
                                    render={props => <Complaint {...props} user={user}/>} />
+                            <Route exact path={match.url + "/browse/complaint"}
+                                   render={props => <BrowseComplaint {...props} user={user}/>} />
                         </Grid.Column></Grid.Row>
                     </Grid>
                 </Grid.Row>

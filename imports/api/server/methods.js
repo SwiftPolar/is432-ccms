@@ -14,6 +14,12 @@ Meteor.publish('getDashboard', () => {
     });
 });
 
+Meteor.publish('getComplaints', () => {
+    return Feedback.find({type: 'complaint'}, {
+        fields: {_id: 1, severity: 1, deadline: 1, area: 1, lastUpdated: 1, internal: 1, status: 1, assignment: 1 }
+    });
+});
+
 const writeFiles = (files, filesName, id, additional = false) => {
 
     for (let i = 0; i < files.length; i++) {
