@@ -28,7 +28,7 @@ class MomApp extends Component {
             <Grid >
                 <Grid.Row style={{paddingBottom: '0'}}>
                     <Container><Menu borderless fluid style={{boxShadow: 'none', border: '0'}}>
-                        <Link to='/public'><Menu.Header as="div" link={""}>
+                        <Link to='/mom'><Menu.Header as="div" link={""}>
                             <Image src="/images/mom-logo-share-hd.png" size="small"/>
                         </Menu.Header></Link>
                         <Menu.Item position="right">
