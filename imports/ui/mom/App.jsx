@@ -43,6 +43,8 @@ class MomApp extends Component {
                             <Dropdown.Menu style={{background: '#006eab'}}>
                                 <Link to="/mom"><Dropdown.Item>
                                     Dashboard</Dropdown.Item></Link>
+                                <Link to="/mom/browse/complaint"><Dropdown.Item>
+                                    View Complaints</Dropdown.Item></Link>
                             </Dropdown.Menu>
                         </Dropdown>
                         <Menu.Item><Breadcrumb icon='right angle' sections={[

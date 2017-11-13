@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {withTracker} from 'meteor/react-meteor-data';
-import {Grid, Header, Segment, Table} from 'semantic-ui-react';
+import {Grid, Header, Segment, Table, Menu, Input} from 'semantic-ui-react';
 import {Feedback} from '../../api/collections';
 import {Link} from 'react-router-dom';
 
@@ -10,16 +10,29 @@ class BrowseComplaint extends Component {
     constructor(props) {
         super();
         this.state = {
-            complaintsArr: []
+            complaintsArr: Feedback.find({type: 'complaint'}).fetch()
         };
     }
 
     componentWillReceiveProps(nextProps) {
         const {complaints} = nextProps;
         this.setState({
-            complaints: nextProps.complaints,
-            complaintsArr: complaints.find({}).fetch()
+            complaints,
+            complaintsArr: complaints.find({type: 'complaint'}).fetch()
         });
+    }
+
+    handleSearchId(evt, data) {
+        const {value} = data;
+        const {complaints} = this.state;
+        let searchObject = {type: 'complaint'};
+        if (value) {
+            searchObject._id = {$regex: value, $options: 'i'};
+        }
+
+        this.setState({
+            complaintsArr: complaints.find(searchObject).fetch()
+        })
     }
 
     render() {
@@ -30,6 +43,16 @@ class BrowseComplaint extends Component {
                 <Segment size="massive" basic>
                     <Header textAlign="center" size="large" content="Viewing Complaints"/>
                 </Segment>
+                <Menu>
+                    <Menu.Item>
+                        <Input onChange={this.handleSearchId.bind(this)} className='icon'
+                               icon='search' placeholder='Search...' />
+                    </Menu.Item>
+
+                    <Menu.Item position='right'>
+                        <Input action={{ type: 'submit', content: 'Go' }} placeholder='Navigate to...' />
+                    </Menu.Item>
+                </Menu>
             </Grid.Column></Grid.Row>
             <Grid.Row><Grid.Column width={16}>
                 <Table celled>
@@ -53,7 +76,7 @@ class BrowseComplaint extends Component {
                             <Table.Cell>{severity}</Table.Cell>
                             <Table.Cell>{deadline ? moment(deadline).fromNow() : "-"}</Table.Cell>
                             <Table.Cell>{moment(lastUpdated).format('lll')}</Table.Cell>
-                            <Table.Cell>{assignment}</Table.Cell>
+                            <Table.Cell>{assignment ? assignment : "-"}</Table.Cell>
                         </Table.Row>)
                     })}</Table.Body>
                 </Table>
