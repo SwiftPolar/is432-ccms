@@ -117,7 +117,7 @@ class Complaint extends Component {
             const saveChanges = () => {
                 Meteor.call('updateFeedbackInfo', feedback._id, editFeedback, (err, res) => {
                     if (err) return;
-                    this.setState({editFeedback: feedback, hasEdits: false});
+                    this.setState({hasEdits: false});
                 });
             };
             const getDate = () => {
