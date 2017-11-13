@@ -7,6 +7,7 @@ import {withTracker} from 'meteor/react-meteor-data';
 import Dashboard from './Dashboard';
 import Complaint from './Complaint';
 import BrowseComplaint from './BrowseComplaint';
+import BrowseCompliment from './BrowseCompliment';
 
 class MomApp extends Component {
     constructor(props) {
@@ -45,6 +46,8 @@ class MomApp extends Component {
                                     Dashboard</Dropdown.Item></Link>
                                 <Link to="/mom/browse/complaint"><Dropdown.Item>
                                     View Complaints</Dropdown.Item></Link>
+                                <Link to="/mom/browse/compliment"><Dropdown.Item>
+                                    View Compliments</Dropdown.Item></Link>
                             </Dropdown.Menu>
                         </Dropdown>
                         <Menu.Item><Breadcrumb icon='right angle' sections={[
@@ -65,6 +68,8 @@ class MomApp extends Component {
                                    render={props => <Complaint {...props} user={user}/>} />
                             <Route exact path={match.url + "/browse/complaint"}
                                    render={props => <BrowseComplaint {...props} user={user}/>} />
+                            <Route exact path={match.url + "/browse/compliment"}
+                                   render={props => <BrowseCompliment {...props} user={user}/>} />
                         </Grid.Column></Grid.Row>
                     </Grid>
                 </Grid.Row>
