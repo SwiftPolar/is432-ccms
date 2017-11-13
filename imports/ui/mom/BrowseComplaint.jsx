@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {withTracker} from 'meteor/react-meteor-data';
-import {Grid, Header, Segment, Table, Menu, Input, Dropdown} from 'semantic-ui-react';
+import {Grid, Header, Segment, Table, Menu, Input, Dropdown, Checkbox} from 'semantic-ui-react';
 import {Feedback} from '../../api/collections';
 import {Link, Redirect} from 'react-router-dom';
 
@@ -13,7 +13,7 @@ class BrowseComplaint extends Component {
             complaintsArr: Feedback.find({type: 'complaint'}).fetch(),
             complaint: "",
             redirect: false,
-            filter: {},
+            filter: {type: 'complaint'},
             searchObject: {}
         };
     }
@@ -29,14 +29,13 @@ class BrowseComplaint extends Component {
     handleSearchId(evt, data) {
         const {value} = data;
         const {complaints, filter} = this.state;
-        let searchObject = {type: 'complaint'};
+        let searchObject = {};
         if (value) {
             searchObject._id = {$regex: value, $options: 'i'};
         }
         if (Object.keys(filter).length > 0) {
             searchObject = Object.assign(filter, searchObject);
         }
-        console.log(filter);
         this.setState({
             searchObject,
             complaintsArr: complaints.find(searchObject).fetch()
@@ -73,6 +72,23 @@ class BrowseComplaint extends Component {
         })
     }
 
+    handleMyFilter(evt, data) {
+        const {checked} = data;
+        let {filter, searchObject, complaints} = this.state;
+        if (checked) {
+            filter.assignment = this.props.user.username;
+        } else {
+            delete filter.assignment;
+        }
+        filter = Object.assign(searchObject, filter);
+
+        this.setState({
+            filter,
+            complaintsArr: complaints.find(filter).fetch()
+        })
+
+    }
+
     render() {
         const {complaintsArr, redirect, complaint} = this.state;
         const filterOptions = [
@@ -106,6 +122,9 @@ class BrowseComplaint extends Component {
                     <Menu.Item>
                         <Input onChange={this.handleSearchId.bind(this)} className='icon'
                                icon='search' placeholder='Search...'/>
+                    </Menu.Item>
+                    <Menu.Item>
+                        <Checkbox label="View my assignments" onChange={this.handleMyFilter.bind(this)}/>
                     </Menu.Item>
 
                     <Menu.Item position='right'>

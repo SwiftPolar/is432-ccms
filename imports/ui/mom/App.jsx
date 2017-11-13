@@ -49,7 +49,7 @@ class MomApp extends Component {
                         </Dropdown>
                         <Menu.Item><Breadcrumb icon='right angle' sections={[
                             {key: 'home', content: 'Home'},
-                            {key: 'feedbackMgmt', content: 'Feedback Management'},
+                            {key: 'ccms', content: 'CCMS'},
                         ]}/></Menu.Item>
                         <Menu.Item position="right">
                             Welcome back, {user.username}!
