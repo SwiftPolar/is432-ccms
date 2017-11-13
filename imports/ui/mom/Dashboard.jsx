@@ -150,7 +150,7 @@ class Dashboard extends Component {
             </Grid.Row>
             <Grid.Row>
                 <Grid.Column width={16}>
-                    <Header size='large' content="Total Count" textAlign='center'/>
+                    <Header size='large' content="Total Pending Count" textAlign='center'/>
                 </Grid.Column>
             </Grid.Row>
             <Grid.Row columns={3} textAlign="center">
