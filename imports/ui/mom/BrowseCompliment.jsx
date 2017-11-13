@@ -75,8 +75,6 @@ class BrowseCompliment extends Component {
                 filter[k] = {$in: [v]};
             }
         });
-
-        if (value.indexOf('internal-all') !== -1) delete filter.internal;
         if (value.indexOf('area-all') !== -1) delete filter.area;
         if (value.indexOf('status-all') !== -1) delete filter.status;
 
@@ -85,7 +83,6 @@ class BrowseCompliment extends Component {
         }
 
         if (value.length === 0) {
-            delete filter.internal;
             delete filter.area;
             delete filter.status;
         }
@@ -119,7 +116,6 @@ class BrowseCompliment extends Component {
         }
 
         if (filterArr.length === 0) {
-            delete filter.internal;
             delete filter.area;
             delete filter.status;
         }
@@ -146,7 +142,6 @@ class BrowseCompliment extends Component {
         filter = Object.assign(searchObject, filter);
 
         if (filterArr.length === 0) {
-            delete filter.internal;
             delete filter.area;
             delete filter.status;
         }
@@ -193,9 +188,6 @@ class BrowseCompliment extends Component {
     render() {
         const {complimentsArr, redirect, compliment} = this.state;
         const filterOptions = [
-            {key: 'filter-internal-all', text: 'All Types', value: 'internal-all', content: <Header content="Type"/>},
-            {key: 'filter-internal-internal', text: 'Internal', value: 'internal-internal'},
-            {key: 'filter-internal-external', text: 'External', value: 'internal-external'},
             {key: 'filter-area-all', text: 'All Categories', value: 'area-all', content: <Header content="Category"/>},
             {key: 'filter-area-workpass', text: 'Work passes and permits', value: 'area-workpass'},
             {key: 'filter-area-practices', text: 'Employment practices', value: 'area-practices'},
@@ -253,17 +245,15 @@ class BrowseCompliment extends Component {
                 <Table celled>
                     <Table.Header><Table.Row>
                         <Table.HeaderCell>ID</Table.HeaderCell>
-                        <Table.HeaderCell>Type</Table.HeaderCell>
                         <Table.HeaderCell>Category</Table.HeaderCell>
                         <Table.HeaderCell>Status</Table.HeaderCell>
                         <Table.HeaderCell>Last Updated</Table.HeaderCell>
                         <Table.HeaderCell>Assigned To</Table.HeaderCell>
                     </Table.Row></Table.Header>
                     <Table.Body>{complimentsArr.map((compliment) => {
-                        const {_id, area, lastUpdated, internal, status, assignment} = compliment;
+                        const {_id, area, lastUpdated, status, assignment} = compliment;
                         return (<Table.Row key={_id}>
                             <Table.Cell><Link to={"/mom/compliment/" + _id}>{_id}</Link></Table.Cell>
-                            <Table.Cell>{internal ? internal : "-"}</Table.Cell>
                             <Table.Cell>{area}</Table.Cell>
                             <Table.Cell>{status}</Table.Cell>
                             <Table.Cell>{moment(lastUpdated).format('lll')}</Table.Cell>

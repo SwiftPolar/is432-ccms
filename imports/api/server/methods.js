@@ -11,7 +11,7 @@ Meteor.publish('getDashboard', () => {
     return Feedback.find({
         status: {$ne: 'closed'},
     }, {
-        fields: {severity: 1, deadline: 1, type: 1, internal: 1}
+        fields: {severity: 1, deadline: 1, type: 1}
     });
 });
 

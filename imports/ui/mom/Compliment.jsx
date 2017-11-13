@@ -103,10 +103,6 @@ class Compliment extends Component {
         const isSupervisor = user.role === "supervisor";
 
         const getDetailsForm = () => {
-            const typeOptions = [
-                {key: "internal", text: "Internal", value: "internal"},
-                {key: "external", text: "External", value: "external"}
-            ];
             const categoryOptions = [
                 {key: 'workpass', text: 'Work passes and permits', value: 'workpass'},
                 {key: 'practices', text: 'Employment practices', value: 'practices'},
@@ -131,10 +127,6 @@ class Compliment extends Component {
 
             if (feedback.status === 'closed') return (<Table celled basic><Table.Body>
                 <Table.Row>
-                    <Table.Cell><b>Type</b></Table.Cell>
-                    <Table.Cell>{feedback.internal}</Table.Cell>
-                </Table.Row>
-                <Table.Row>
                     <Table.Cell><b>Category</b></Table.Cell>
                     <Table.Cell>{feedback.area}</Table.Cell>
                 </Table.Row>
@@ -149,8 +141,6 @@ class Compliment extends Component {
             </Table.Body></Table>);
 
             return (<Form size="large" style={{paddingRight: '25px'}}>
-                <Form.Select label="Type" inline onChange={this.handleChange.bind(this)}
-                             name="internal" options={typeOptions} value={editFeedback.internal}/>
                 <Form.Select label="Category" inline onChange={this.handleChange.bind(this)}
                              name="area" options={categoryOptions} value={editFeedback.area}/>
 
