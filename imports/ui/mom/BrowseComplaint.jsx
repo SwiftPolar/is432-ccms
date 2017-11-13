@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {withTracker} from 'meteor/react-meteor-data';
-import {Grid, Header, Segment, Table, Menu, Input, Dropdown, Checkbox} from 'semantic-ui-react';
+import {Grid, Header, Segment, Table, Menu, Input, Dropdown, Checkbox, Select} from 'semantic-ui-react';
 import {Feedback} from '../../api/collections';
 import {Link, Redirect} from 'react-router-dom';
 
@@ -17,7 +17,9 @@ class BrowseComplaint extends Component {
             searchObject: {},
             myAssignment: false,
             assignedTo: "",
-            filterArr: []
+            filterArr: [],
+            sortBy: 'deadline',
+            lastFilter: {}
         };
     }
 
@@ -48,6 +50,7 @@ class BrowseComplaint extends Component {
 
         this.setState({
             searchObject,
+            lastFilter: searchObject,
             complaintsArr: complaints.find(searchObject).fetch()
         });
     }
@@ -92,6 +95,7 @@ class BrowseComplaint extends Component {
         this.setState({
             filter,
             filterArr: value,
+            lastFilter: filter,
             complaintsArr: complaints.find(filter).fetch()
         })
     }
@@ -116,6 +120,7 @@ class BrowseComplaint extends Component {
         }
 
         this.setState({
+            lastFilter: finalFilter,
             complaintsArr: complaints.find(finalFilter).fetch()
         });
 
@@ -144,9 +149,25 @@ class BrowseComplaint extends Component {
         this.setState({
             filter,
             myAssignment: checked,
-            complaintsArr: complaints.find(filter).fetch()
+            complaintsArr: complaints.find(filter).fetch(),
+            lastFilter: filter,
         })
 
+    }
+
+    handleSort(evt, data) {
+        const {lastFilter, complaints, sortBy} = this.state;
+        let value = data ? data.value : sortBy;
+        let sortObj = {};
+        if (value === 'deadline') {
+            sortObj[value] = 1;
+        } else {
+            sortObj[value] = -1;
+        }
+        this.setState({
+            sortBy: value,
+            complaintsArr: complaints.find(lastFilter, {sort: sortObj}).fetch(),
+        })
     }
 
     render() {
@@ -190,6 +211,14 @@ class BrowseComplaint extends Component {
                         <Input onChange={this.handleSearchAssign.bind(this)} className='icon'
                                icon='user' placeholder='Assigned to...'/>
                     </Menu.Item>
+                    <Menu.Item>
+                        <Select onChange={this.handleSort.bind(this)} options={[
+                            {key: 'sort-deadline', value: 'deadline', 'text': 'Deadline'},
+                            {key: 'sort-updated', value: 'lastUpdated', 'text': 'Last Updated'},
+                        ]}
+                                placeholder='Sort by...'/>
+                    </Menu.Item>
+
 
                     <Menu.Item position='right'>
                         <Input action={{
