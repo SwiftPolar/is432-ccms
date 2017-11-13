@@ -1,6 +1,7 @@
 import {Meteor} from 'meteor/meteor';
 import {Feedback} from '../collections';
 import {HTTP} from 'meteor/http';
+import {Email} from 'meteor/email';
 
 Meteor.publish('getFeedback', (id) => {
     return Feedback.find({_id: id});
@@ -16,15 +17,19 @@ Meteor.publish('getDashboard', () => {
 
 Meteor.publish('getCompliments', () => {
     return Feedback.find({type: 'compliment'}, {
-        fields: {_id: 1, type: 1, area: 1, lastUpdated: 1,
-            internal: 1, status: 1, assignment: 1 }
+        fields: {
+            _id: 1, type: 1, area: 1, lastUpdated: 1,
+            internal: 1, status: 1, assignment: 1
+        }
     });
 });
 
 Meteor.publish('getComplaints', () => {
     return Feedback.find({type: 'complaint'}, {
-        fields: {_id: 1, type: 1, severity: 1, deadline: 1, area: 1, lastUpdated: 1,
-            internal: 1, status: 1, assignment: 1 }
+        fields: {
+            _id: 1, type: 1, severity: 1, deadline: 1, area: 1, lastUpdated: 1,
+            internal: 1, status: 1, assignment: 1
+        }
     });
 });
 
@@ -112,7 +117,7 @@ Meteor.methods({
             status: "received",
             lastUpdated: new Date(),
             severity: "unassigned",
-            internal: "",
+            internal: type === 'compliment' ? 'internal' : "",
             deadline: "",
             notes: [],
             files: [],
@@ -124,6 +129,22 @@ Meteor.methods({
             writeFiles(files, filesName, feedbackID);
         }
 
+        let emailText = '';
+        if (type === 'complaint') {
+            emailText = 'We have received your ' + type + ' and will be working to investigate and resolve it' +
+                ' for you. Your feedback ID is: ' + feedbackID;
+        } else {
+            emailText = 'We have received your ' + type + ' and will be delighted to let the relevant parties know.' +
+                'Your feedback ID is: ' + feedbackID;
+        }
+
+        Email.send({
+            from: 'is432@leeqixian.com',
+            to: email,
+            subject: 'Thank you for your feedback',
+            text: emailText
+        });
+
         return feedbackID;
     },
 
@@ -134,16 +155,32 @@ Meteor.methods({
         const {assignment, severity, internal, deadline} = data;
         const updateTime = new Date();
         const oldFeedback = Feedback.findOne(id);
-        Feedback.update(id, {$set: {
-            lastUpdated: updateTime,
-            status: assignment ? "pending" : "received",
-            severity, internal,
-            deadline: new Date(deadline),
-            assignment
-        }});
+        Feedback.update(id, {
+            $set: {
+                lastUpdated: updateTime,
+                status: assignment ? "pending" : "received",
+                severity, internal,
+                deadline: new Date(deadline),
+                assignment
+            }
+        });
         pushHistory(id, {type: 'updateInfo'}, user.username);
         if (oldFeedback.assignment !== assignment) {
             pushHistory(id, {type: 'updateAssignment', info: assignment}, user.username);
+        }
+
+        if (oldFeedback.type === 'complaint' && oldFeedback.severity === 'unassigned'
+            && severity !== 'unassigned') {
+            let processDays = severity === 'high' ? '7' : severity === 'medium' ? '14' : '21';
+            let emailText = "Your feedback (ID: " + id + ") is currently being looked into and we" +
+                " will get back to you in an estimated number of " + processDays + " business days";
+
+            Email.send({
+                from: 'is432@leeqixian.com',
+                to: oldFeedback.email,
+                subject: 'Feedback (ID:' + id + ') is being processed',
+                text: emailText
+            });
         }
     },
 
@@ -160,11 +197,15 @@ Meteor.methods({
         if (!id || !note) throw new Meteor.Error('500 Internal Server Error');
         let user = Meteor.user();
         if (!user) throw new Meteor.Error('500 Permissions Denied');
-        Feedback.update(id, {$push: {notes: {
-            author: user.username,
-            date: new Date(),
-            message: note
-        }}});
+        Feedback.update(id, {
+            $push: {
+                notes: {
+                    author: user.username,
+                    date: new Date(),
+                    message: note
+                }
+            }
+        });
         pushHistory(id, {type: 'newNote', extra: note}, user.username);
 
     },
@@ -189,8 +230,12 @@ Meteor.methods({
         let user = Meteor.user();
         if (!user) throw new Meteor.Error('500 Permissions Denied');
         let date = new Date();
-        Feedback.update({_id: id}, {$set: {status: "closed", finalRemarks: remarks,
-            lastUpdated: date, closeDate: date}});
+        Feedback.update({_id: id}, {
+            $set: {
+                status: "closed", finalRemarks: remarks,
+                lastUpdated: date, closeDate: date
+            }
+        });
         pushHistory(id, {type: 'closeCase', extra: remarks}, user.username);
 
     },
