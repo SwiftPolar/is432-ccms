@@ -6,6 +6,8 @@ import {
     Segment, Button, Modal, Confirm, Label, Select, Input, Comment, Feed
 } from 'semantic-ui-react';
 import moment from 'moment';
+import 'react-toastify/dist/ReactToastify.min.css';
+import {ToastContainer, toast} from 'react-toastify';
 
 class Complaint extends Component {
     constructor(props) {
@@ -169,9 +171,10 @@ class Complaint extends Component {
                 <Form.Select label="Category" inline onChange={this.handleChange.bind(this)}
                              name="area" options={categoryOptions} value={editFeedback.area}/>
                 <Form.Select label="Severity" inline onChange={this.handleChange.bind(this)}
-                             name="severity" options={severityOptions} value={editFeedback.severity}/>
+                             name="severity" options={severityOptions} value={editFeedback.severity}
+                             disabled={!isSupervisor}/>
                 <Form.Input label="Deadline" inline onChange={this.handleChange.bind(this)}
-                            name="deadline" type="date"
+                            name="deadline" type="date" disabled={!isSupervisor}
                             value={getDate()}/>
                 <Form.Group>
                     <Form.Input label="Assign" inline onChange={this.handleChange.bind(this)}
